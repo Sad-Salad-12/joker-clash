@@ -165,9 +165,9 @@ function enumerateCombos(hand, maxSize) {
 
 /* ---------- AI ---------- */
 const AI_LEVELS = {
-  easy:   { label: '简单', mistakeRate: 0.45, startJokers: 0, jokerPick: 'random' },
-  normal: { label: '普通', mistakeRate: 0.12, startJokers: 1, jokerPick: 'best' },
-  hard:   { label: '困难', mistakeRate: 0,    startJokers: 1, jokerPick: 'best' },
+  easy:   { label: 'EASY',   mistakeRate: 0.45, startJokers: 0, jokerPick: 'random' },
+  normal: { label: 'NORMAL', mistakeRate: 0.12, startJokers: 1, jokerPick: 'best' },
+  hard:   { label: 'HARD',   mistakeRate: 0,    startJokers: 1, jokerPick: 'best' },
 };
 
 function aiChoosePlay(player, opponent, playIndex, level) {
@@ -225,8 +225,8 @@ function aiPickJoker(choices, player, level) {
   // 简单启发式：优先 xmult > 通用加成 > 条件加成
   const rank = j => {
     const d = (j.desc || '');
-    if (d.includes('×2') || d.includes('×3') || d.includes('×4')) return 3;
-    if (d.includes('每张')) return 2;
+    if (/x[0-9]/.test(d)) return 3;        // x2 / x3 / x4 / x1.5 — multiplicative
+    if (d.includes(' per ')) return 2;     // scales with every card played
     return 1;
   };
   return choices.slice().sort((a, b) => rank(b) - rank(a))[0];

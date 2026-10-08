@@ -1,5 +1,5 @@
 /* ============================================================
- *  style.css —— 炉石风格 1v1 卡牌对战
+ *  style.css — JOKER CLASH (Hearthstone-style 1v1 card battler)
  * ============================================================ */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -17,13 +17,11 @@
   --panel:       rgba(24, 15, 8, .82);
 }
 
-html, body {
-  height: 100%;
-  overflow: hidden;
-}
-
+html { height: 100%; }
 body {
-  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  min-height: 100%;        /* 而不是 height:100% —— 否则内容溢出时无法滚动 */
+  overflow-x: hidden;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: var(--ink);
   background:
     radial-gradient(ellipse at 50% 42%, #4a2e18 0%, #22140a 55%, #0d0703 100%),
@@ -40,14 +38,15 @@ body {
 #game {
   position: relative;
   height: 100vh;
+  min-height: 560px;   /* below this the page scrolls instead of clipping buttons */
   display: flex;
   flex-direction: column;
 }
 
 /* ---------- 通用：单侧区域 ---------- */
-.side { position: relative; z-index: 3; }
-.side-opp { height: 210px; padding-top: 10px; }
-.side-me  { height: 320px; }
+.side { position: relative; z-index: 3; flex: 0 0 auto; }
+.side-opp { padding-top: 8px; }
+.side-me  { display: flex; flex-direction: column; }
 
 .opp-top, .me-bottom {
   display: flex;
@@ -194,7 +193,7 @@ body {
   padding: 2px 9px; border-radius: 10px;
   background: rgba(0,0,0,.35); border: 1px solid rgba(232,194,106,.2);
 }
-.discard-pile::before { content: "弃牌堆 "; }
+.discard-pile::before { content: "DISCARD "; }
 
 /* ============================================================
  *  中央战场
@@ -204,7 +203,7 @@ body {
   flex: 1 1 auto;
   display: flex; align-items: center; justify-content: center;
   gap: 42px;
-  min-height: 0;
+  min-height: 130px;
 }
 .board-felt {
   position: absolute; inset: 6px 40px;
@@ -292,21 +291,41 @@ body {
   100% { transform: translate(-50%,-50%) scale(1.15); opacity: 0; }
 }
 .log-line {
-  position: absolute; left: 0; right: 0; bottom: 4px;
-  text-align: center; font-size: 12px; opacity: .55; letter-spacing: .5px;
+  position: absolute; left: 50%; bottom: 6px;
+  transform: translateX(-50%);
+  max-width: min(680px, 86%);
+  padding: 5px 16px;
+  border-radius: 14px;
+  background: rgba(10, 6, 2, .74);
+  border: 1px solid rgba(232,194,106, .18);
+  text-align: center; font-size: 12px; opacity: .85; letter-spacing: .5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  z-index: 60;              /* 浮在上浮的手牌之上 */
+  pointer-events: none;
 }
 
 /* ============================================================
  *  手牌（扇形）
  * ============================================================ */
 .hand-fan {
-  position: absolute; left: 0; right: 0;
-  height: 150px;
+  position: relative;
+  width: 100%;
+  height: 156px;
   pointer-events: none;
 }
-.hand-opp { top: 96px; }
-.hand-me  { top: -8px; }
+.hand-opp { height: 92px; }
 .hand-fan .card { pointer-events: auto; }
+
+/* Player hand row: hand + action buttons sit side by side,
+   so the buttons can never be pushed outside the viewport. */
+.hand-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 0 22px;
+  flex: 0 0 auto;
+}
+.hand-me { flex: 1 1 auto; }
 
 .card {
   position: absolute;
@@ -386,14 +405,16 @@ body {
  *  按钮
  * ============================================================ */
 .action-bar {
-  position: absolute; right: 26px; top: 96px;
-  display: flex; flex-direction: column; gap: 9px;
+  position: relative;
+  flex: 0 0 auto;
+  display: flex; flex-direction: column; gap: 8px;
   z-index: 40;
+  padding-bottom: 14px;
 }
 .act-btn {
-  width: 96px; padding: 11px 0;
+  width: 90px; padding: 9px 0;
   border-radius: 9px; border: none;
-  font: 700 15px/1 inherit; letter-spacing: 1px;
+  font: 700 14px/1 inherit; letter-spacing: 1px;
   color: #2a1a06; cursor: pointer;
   background: linear-gradient(180deg, #ffdf94, #d9a233 60%, #a9741a);
   box-shadow: 0 5px 14px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.5);
@@ -441,6 +462,8 @@ body {
 
 .start-card, .end-card {
   width: 620px; max-width: 92vw;
+  max-height: 94vh;
+  overflow-y: auto;
   padding: 30px 36px 32px;
   border-radius: 16px;
   background: linear-gradient(180deg, #3a2411, #1a0f06);
@@ -580,12 +603,46 @@ body {
   65% { transform: translate(4px, -2px); }
 }
 
-/* 响应式：小屏缩小 */
-@media (max-height: 800px) {
-  .side-opp { height: 180px; }
-  .side-me  { height: 280px; }
+/* ---------- Responsive: shrink on short viewports ---------- */
+@media (max-height: 840px) {
   .hero { width: 72px; height: 72px; }
   .hero-face { font-size: 34px; }
-  .card { width: 80px; height: 114px; margin-left: -40px; }
-  .final { font-size: 36px; }
+  .hp-badge { width: 36px; height: 36px; font: 700 18px/1 "Georgia", serif; }
+  .armor-badge { width: 30px; height: 30px; font-size: 13px; }
+  .card { width: 78px; height: 112px; margin-left: -39px; }
+  .hand-fan { height: 132px; }
+  .hand-opp { height: 78px; }
+  .opp-top { height: 104px; }
+  .me-bottom { height: 116px; }
+  .joker-rack { min-height: 70px; }
+  .joker, .jslot { width: 52px; height: 68px; }
+  .act-btn { width: 84px; padding: 8px 0; font-size: 13px; }
+  .final { font-size: 34px; }
+  .play-area { width: 340px; height: 180px; }
+  .staged-cards .mini { width: 62px; height: 88px; }
+}
+
+@media (max-height: 660px) {
+  .hero { width: 62px; height: 62px; }
+  .hero-face { font-size: 28px; }
+  .hp-badge { width: 32px; height: 32px; font: 700 16px/1 "Georgia", serif; }
+  .card { width: 66px; height: 96px; margin-left: -33px; }
+  .hand-fan { height: 112px; }
+  .hand-opp { height: 64px; }
+  .opp-top { height: 92px; }
+  .me-bottom { height: 104px; }
+  .joker-rack { min-height: 62px; }
+  .joker, .jslot { width: 46px; height: 60px; }
+  .j-name { font-size: 8px; }
+  .act-btn { width: 78px; padding: 7px 0; font-size: 12px; }
+  .board { min-height: 100px; gap: 24px; }
+  .final { font-size: 28px; }
+  .hand-type { font-size: 13px; }
+  .play-area { width: 300px; height: 150px; }
+  .staged-cards .mini { width: 54px; height: 78px; }
+  .title { font-size: 34px; }
+  .rules { gap: 6px; margin: 14px 0 12px; }
+  .rule { font-size: 11px; padding: 6px 10px; line-height: 1.5; }
+  .diff-pick { margin: 4px 0 12px; }
+  .big-start { padding: 12px 0; width: 210px; font-size: 16px; }
 }

@@ -1,12 +1,12 @@
 /* ============================================================
- *  data.js —— 牌库 / 牌型表 / 小丑牌定义
+ *  data.js —— Deck / hand types / Joker definitions
  * ============================================================ */
 
 const SUITS = [
-  { id: 'S', symbol: '♠', name: '黑桃', color: 'black' },
-  { id: 'H', symbol: '♥', name: '红桃', color: 'red' },
-  { id: 'C', symbol: '♣', name: '梅花', color: 'black' },
-  { id: 'D', symbol: '♦', name: '方块', color: 'red' },
+  { id: 'S', symbol: '♠', name: 'Spades',   color: 'black' },
+  { id: 'H', symbol: '♥', name: 'Hearts',   color: 'red' },
+  { id: 'C', symbol: '♣', name: 'Clubs',    color: 'black' },
+  { id: 'D', symbol: '♦', name: 'Diamonds', color: 'red' },
 ];
 
 const RANK_DEFS = [
@@ -25,113 +25,113 @@ const RANK_DEFS = [
   { r: 14, label: 'A',  chips: 11 },
 ];
 
-/* ---------- 牌型表（Balatro 风格） ---------- */
+/* ---------- Hand types (Balatro style) ---------- */
 const HAND_TYPES = {
-  high:           { name: '高牌',   chips: 5,   mult: 1,  key: 'high' },
-  pair:           { name: '对子',   chips: 10,  mult: 2,  key: 'pair' },
-  twoPair:        { name: '两对',   chips: 20,  mult: 2,  key: 'twoPair' },
-  three:          { name: '三条',   chips: 30,  mult: 3,  key: 'three' },
-  straight:       { name: '顺子',   chips: 30,  mult: 4,  key: 'straight' },
-  flush:          { name: '同花',   chips: 35,  mult: 4,  key: 'flush' },
-  fullHouse:      { name: '葫芦',   chips: 40,  mult: 4,  key: 'fullHouse' },
-  four:           { name: '四条',   chips: 60,  mult: 7,  key: 'four' },
-  straightFlush:  { name: '同花顺', chips: 100, mult: 8,  key: 'straightFlush' },
-  royal:          { name: '皇家同花顺', chips: 120, mult: 12, key: 'royal' },
+  high:           { name: 'High Card',       chips: 5,   mult: 1,  key: 'high' },
+  pair:           { name: 'Pair',            chips: 10,  mult: 2,  key: 'pair' },
+  twoPair:        { name: 'Two Pair',        chips: 20,  mult: 2,  key: 'twoPair' },
+  three:          { name: 'Three of a Kind', chips: 30,  mult: 3,  key: 'three' },
+  straight:       { name: 'Straight',        chips: 30,  mult: 4,  key: 'straight' },
+  flush:          { name: 'Flush',           chips: 35,  mult: 4,  key: 'flush' },
+  fullHouse:      { name: 'Full House',      chips: 40,  mult: 4,  key: 'fullHouse' },
+  four:           { name: 'Four of a Kind',  chips: 60,  mult: 7,  key: 'four' },
+  straightFlush:  { name: 'Straight Flush',  chips: 100, mult: 8,  key: 'straightFlush' },
+  royal:          { name: 'Royal Flush',     chips: 120, mult: 12, key: 'royal' },
 };
 
-/* ---------- 小丑牌 ----------
- * apply(ctx) 返回 { chips, mult, xmult, note } 中的若干项，返回 null 表示不触发
- * ctx 字段见 engine.js buildContext()
+/* ---------- Jokers ----------
+ * apply(ctx) returns some of { chips, mult, xmult, note }; null = not triggered
+ * see buildContext() in engine.js for ctx fields
  */
 const JOKERS = [
-  { id: 'greedy',   name: '贪婪小丑', icon: '💰', desc: '打出同花时 +40 筹码',
+  { id: 'greedy',   name: 'Greedy Joker',  icon: '💰', desc: '+40 Chips when you play a Flush',
     apply: c => (c.key === 'flush' || c.key === 'straightFlush' || c.key === 'royal') ? { chips: 40 } : null },
 
-  { id: 'smooth',   name: '顺滑小丑', icon: '🛹', desc: '打出顺子时 +40 筹码',
+  { id: 'smooth',   name: 'Smooth Joker',  icon: '🛹', desc: '+40 Chips when you play a Straight',
     apply: c => (c.key === 'straight' || c.key === 'straightFlush' || c.key === 'royal') ? { chips: 40 } : null },
 
-  { id: 'fourleaf', name: '四叶草',   icon: '🍀', desc: '恰好打出 4 张牌时 +8 倍率',
+  { id: 'fourleaf', name: 'Four Leaf',     icon: '🍀', desc: '+8 Mult on exactly 4 cards',
     apply: c => c.count === 4 ? { mult: 8 } : null },
 
-  { id: 'lone',     name: '独行侠',   icon: '🥷', desc: '恰好打出 1 张牌时 +10 倍率',
+  { id: 'lone',     name: 'Lone Wolf',     icon: '🥷', desc: '+10 Mult on exactly 1 card',
     apply: c => c.count === 1 ? { mult: 10 } : null },
 
-  { id: 'fullhouse',name: '满堂彩',   icon: '🎪', desc: '恰好打出 5 张牌时 +12 倍率',
+  { id: 'fullhouse',name: 'Showman',       icon: '🎪', desc: '+12 Mult on exactly 5 cards',
     apply: c => c.count === 5 ? { mult: 12 } : null },
 
-  { id: 'redqueen', name: '红心皇后', icon: '👑', desc: '每张红色牌 +3 倍率',
+  { id: 'redqueen', name: 'Red Queen',     icon: '👑', desc: '+3 Mult per red card',
     apply: c => ({ mult: c.redCount * 3 }) },
 
-  { id: 'blackking',name: '黑桃国王', icon: '🂡', desc: '每张黑色牌 +6 筹码',
+  { id: 'blackking',name: 'Black King',    icon: '🂡', desc: '+6 Chips per black card',
     apply: c => ({ chips: c.blackCount * 6 }) },
 
-  { id: 'court',    name: '宫廷小丑', icon: '🎭', desc: '每张 J / Q / K +8 筹码',
+  { id: 'court',    name: 'Court Jester',  icon: '🎭', desc: '+8 Chips per J / Q / K',
     apply: c => ({ chips: c.faceCount * 8 }) },
 
-  { id: 'even',     name: '偶数先生', icon: '🎳', desc: '每张偶数牌 +2 倍率',
+  { id: 'even',     name: 'Even Steven',   icon: '🎳', desc: '+2 Mult per even-ranked card',
     apply: c => ({ mult: c.evenCount * 2 }) },
 
-  { id: 'odd',      name: '奇数先生', icon: '🥧', desc: '每张奇数牌 +8 筹码',
+  { id: 'odd',      name: 'Odd Todd',      icon: '🥧', desc: '+8 Chips per odd-ranked card',
     apply: c => ({ chips: c.oddCount * 8 }) },
 
-  { id: 'ace',      name: '王牌',     icon: '🅰️', desc: '每张 A +15 筹码',
+  { id: 'ace',      name: 'Ace Up',        icon: '🅰️', desc: '+15 Chips per Ace',
     apply: c => ({ chips: c.aceCount * 15 }) },
 
-  { id: 'double',   name: '翻倍小丑', icon: '✖️', desc: '得分 ×2',
+  { id: 'double',   name: 'Doubler',       icon: '✖️', desc: 'x2 Mult',
     apply: () => ({ xmult: 2 }) },
 
-  { id: 'triple',   name: '三倍小丑', icon: '🧊', desc: '打出三条 / 葫芦时 ×3 倍率',
+  { id: 'triple',   name: 'Trifecta',      icon: '🧊', desc: 'x3 Mult on Three of a Kind / Full House',
     apply: c => (c.key === 'three' || c.key === 'fullHouse') ? { xmult: 3 } : null },
 
-  { id: 'pairjoker',name: '对对小丑', icon: '👯', desc: '打出对子 / 两对时 +30 筹码',
+  { id: 'pairjoker',name: 'Twin Joker',    icon: '👯', desc: '+30 Chips on Pair / Two Pair',
     apply: c => (c.key === 'pair' || c.key === 'twoPair') ? { chips: 30 } : null },
 
-  { id: 'glass',    name: '玻璃小丑', icon: '🔮', desc: '得分 ×2，但每次出牌自损 3 点生命', selfDamage: 3,
+  { id: 'glass',    name: 'Glass Joker',   icon: '🔮', desc: 'x2 Mult, but lose 3 HP every play', selfDamage: 3,
     apply: () => ({ xmult: 2 }) },
 
-  { id: 'lucky',    name: '幸运骰子', icon: '🎲', desc: '25% 概率触发 ×4 倍率',
-    apply: () => (Math.random() < 0.25 ? { xmult: 4, note: '幸运触发！' } : null) },
+  { id: 'lucky',    name: 'Lucky Dice',    icon: '🎲', desc: '25% chance to trigger x4 Mult',
+    apply: () => (Math.random() < 0.25 ? { xmult: 4, note: 'LUCKY!' } : null) },
 
-  { id: 'vampire',  name: '吸血鬼',   icon: '🧛', desc: '每次出牌回复 3 点生命', heal: 3,
+  { id: 'vampire',  name: 'Vampire',       icon: '🧛', desc: 'Heal 3 HP every play', heal: 3,
     apply: () => ({}) },
 
-  { id: 'berserk',  name: '狂战士',   icon: '🩸', desc: '生命低于 20 时得分 ×2',
-    apply: c => c.player.hp < 20 ? { xmult: 2, note: '狂暴！' } : null },
+  { id: 'berserk',  name: 'Berserker',     icon: '🩸', desc: 'x2 Mult while below 20 HP',
+    apply: c => c.player.hp < 20 ? { xmult: 2, note: 'FRENZY!' } : null },
 
-  { id: 'collector',name: '收藏家',   icon: '📚', desc: '每张重复点数的牌 +6 筹码',
+  { id: 'collector',name: 'Collector',     icon: '📚', desc: '+6 Chips per duplicate rank',
     apply: c => ({ chips: (c.count - c.rankCount) * 6 }) },
 
-  { id: 'rainbow',  name: '彩虹',     icon: '🌈', desc: '打出 5 种不同点数时 +10 倍率',
+  { id: 'rainbow',  name: 'Rainbow',       icon: '🌈', desc: '+10 Mult on 5 different ranks',
     apply: c => c.rankCount >= 5 ? { mult: 10 } : null },
 
-  { id: 'volcano',  name: '火山',     icon: '🌋', desc: '每张打出的牌 +6 筹码',
+  { id: 'volcano',  name: 'Volcano',       icon: '🌋', desc: '+6 Chips per card played',
     apply: c => ({ chips: c.count * 6 }) },
 
-  { id: 'mirror',   name: '镜像',     icon: '🪞', desc: '本回合第 2 次及以后出牌 ×1.5 倍率',
+  { id: 'mirror',   name: 'Mirror',        icon: '🪞', desc: 'x1.5 Mult from your 2nd play onward',
     apply: c => c.playIndex >= 1 ? { xmult: 1.5 } : null },
 
-  { id: 'lightning',name: '闪电',     icon: '⚡', desc: '每回合首次出牌 ×3 倍率',
+  { id: 'lightning',name: 'Lightning',     icon: '⚡', desc: 'x3 Mult on your first play each turn',
     apply: c => c.playIndex === 0 ? { xmult: 3 } : null },
 
-  { id: 'stoneskin',name: '石肤',     icon: '🪨', desc: '每回合开始获得 6 点护甲', turnArmor: 6,
+  { id: 'stoneskin',name: 'Stone Skin',    icon: '🪨', desc: 'Gain 6 Armor at the start of each turn', turnArmor: 6,
     apply: () => ({}) },
 
-  { id: 'scholar',  name: '智慧书',   icon: '📖', desc: '每回合 +1 次弃牌', bonusDiscard: 1,
+  { id: 'scholar',  name: 'Scholar',       icon: '📖', desc: '+1 Discard each turn', bonusDiscard: 1,
     apply: () => ({}) },
 
-  { id: 'cat',      name: '复制猫',   icon: '🐱', desc: '每回合 +1 次出牌', bonusPlay: 1,
+  { id: 'cat',      name: 'Copycat',       icon: '🐱', desc: '+1 Play each turn', bonusPlay: 1,
     apply: () => ({}) },
 
-  { id: 'giant',    name: '巨人',     icon: '🗿', desc: '每张 9 以上的牌 +6 筹码',
+  { id: 'giant',    name: 'Giant',         icon: '🗿', desc: '+6 Chips per card ranked 9 or higher',
     apply: c => ({ chips: c.bigCount * 6 }) },
 
-  { id: 'tiny',     name: '小矮人',   icon: '🧸', desc: '每张 5 以下的牌 +3 倍率',
+  { id: 'tiny',     name: 'Small Fry',     icon: '🧸', desc: '+3 Mult per card ranked 5 or lower',
     apply: c => ({ mult: c.smallCount * 3 }) },
 ];
 
 const JOKER_MAP = JOKERS.reduce((m, j) => { m[j.id] = j; return m; }, {});
 
-/* ---------- 全局常量 ---------- */
+/* ---------- Global config ---------- */
 const CONFIG = {
   MAX_HP: 150,
   HAND_SIZE: 8,
@@ -139,7 +139,7 @@ const CONFIG = {
   BASE_PLAYS: 4,
   BASE_DISCARDS: 3,
   MAX_JOKERS: 5,
-  DAMAGE_DIVISOR: 95,   // 伤害 = ceil(得分 / DAMAGE_DIVISOR)
-  JOKER_TRIGGER: 160,   // 单次出牌得分 ≥ 此值触发小丑三选一
+  DAMAGE_DIVISOR: 95,   // damage = ceil(score / DAMAGE_DIVISOR)
+  JOKER_TRIGGER: 160,   // scoring >= this in one play triggers a Joker draft
   JOKER_TRIGGER_PER_TURN: 1,
 };

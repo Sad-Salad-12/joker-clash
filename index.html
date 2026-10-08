@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>小丑战争 · JOKER CLASH</title>
-<meta name="description" content="1v1 卡牌对战：炉石的战场 + 小丑牌的计分。抽满 8 张，出 4 手牌，用扑克牌型把小丑倍率叠到爆炸。">
-<meta property="og:title" content="小丑战争 · JOKER CLASH">
-<meta property="og:description" content="1v1 card battler: Hearthstone's board + Balatro's scoring.">
+<title>JOKER CLASH — 1v1 Card Battler</title>
+<meta name="description" content="A 1v1 card battler: Hearthstone's board layout with Balatro's scoring engine. Build poker hands, stack Joker multipliers, burst your opponent down.">
+<meta property="og:title" content="JOKER CLASH — 1v1 Card Battler">
+<meta property="og:description" content="Build poker hands, stack Jokers, and burst your opponent down from 150 HP.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b1a52' stroke='%23b8860b' stroke-width='2'/%3E%3Ctext x='16' y='24' font-size='19' text-anchor='middle' fill='%23e8c26a'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b1a52' stroke='%23b8860b' stroke-width='2'/%3E%3Ctext x='16' y='24' font-size='19' text-anchor='middle' fill='%23e8c26a'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/style.css">
@@ -15,7 +15,7 @@
 
 <div id="game" class="hidden">
 
-  <!-- ============ 对手区 ============ -->
+  <!-- ============ Opponent ============ -->
   <section class="side side-opp">
     <div class="opp-top">
       <div class="hero-wrap">
@@ -25,9 +25,9 @@
           <div class="hp-badge" id="hpBadgeOpp"><span id="hpOpp">150</span></div>
         </div>
         <div class="hero-meta">
-          <div class="hero-name" id="oppName">对手 AI</div>
+          <div class="hero-name" id="oppName">OPPONENT</div>
           <div class="hp-bar"><i id="hpBarOpp"></i></div>
-          <div class="turn-score">本回合得分 <b id="oppTurnScore">0</b></div>
+          <div class="turn-score">THIS TURN <b id="oppTurnScore">0</b></div>
         </div>
       </div>
 
@@ -35,14 +35,14 @@
 
       <div class="right-stack">
         <div class="crystals" id="crystalsOpp"></div>
-        <div class="discard-pile" title="弃牌堆"><span id="discardOpp">0</span></div>
+        <div class="discard-pile" title="Discard pile"><span id="discardOpp">0</span></div>
       </div>
     </div>
 
     <div class="hand-fan hand-opp" id="handOpp"></div>
   </section>
 
-  <!-- ============ 中央战场 ============ -->
+  <!-- ============ Board ============ -->
   <section class="board">
     <div class="board-felt"></div>
 
@@ -51,7 +51,7 @@
     </div>
 
     <div class="readout" id="readout">
-      <div class="hand-type" id="handTypeName">选择手牌</div>
+      <div class="hand-type" id="handTypeName">PICK CARDS</div>
       <div class="formula">
         <span class="chip" id="chipsVal">0</span>
         <em>×</em>
@@ -66,9 +66,18 @@
     <div class="log-line" id="logLine"></div>
   </section>
 
-  <!-- ============ 玩家区 ============ -->
+  <!-- ============ Player ============ -->
   <section class="side side-me">
-    <div class="hand-fan hand-me" id="handMe"></div>
+    <div class="hand-row">
+      <div class="hand-fan hand-me" id="handMe"></div>
+
+      <div class="action-bar">
+        <button class="act-btn" id="btnPlay" disabled>PLAY</button>
+        <button class="act-btn ghost" id="btnDiscard" disabled>DISCARD</button>
+        <button class="act-btn ghost" id="btnHint">BEST</button>
+        <button class="act-btn ghost" id="btnClear" disabled>CLEAR</button>
+      </div>
+    </div>
 
     <div class="me-bottom">
       <div class="hero-wrap">
@@ -78,9 +87,9 @@
           <div class="hp-badge" id="hpBadgeMe"><span id="hpMe">150</span></div>
         </div>
         <div class="hero-meta">
-          <div class="hero-name">你</div>
+          <div class="hero-name">YOU</div>
           <div class="hp-bar"><i id="hpBarMe"></i></div>
-          <div class="turn-score">本回合得分 <b id="meTurnScore">0</b></div>
+          <div class="turn-score">THIS TURN <b id="meTurnScore">0</b></div>
         </div>
       </div>
 
@@ -88,63 +97,56 @@
 
       <div class="right-stack">
         <div class="crystals" id="crystalsMe"></div>
-        <div class="discard-pile" title="弃牌堆"><span id="discardMe">0</span></div>
+        <div class="discard-pile" title="Discard pile"><span id="discardMe">0</span></div>
         <button class="end-turn" id="btnEnd">
-          <span class="et-main">结束回合</span>
-          <span class="et-sub" id="etSub">出牌 4</span>
+          <span class="et-main">END TURN</span>
+          <span class="et-sub" id="etSub">PLAYS 4</span>
         </button>
       </div>
-    </div>
-
-    <div class="action-bar">
-      <button class="act-btn" id="btnPlay" disabled><span>出牌</span></button>
-      <button class="act-btn ghost" id="btnDiscard" disabled><span>弃牌</span></button>
-      <button class="act-btn ghost" id="btnHint"><span>推荐</span></button>
-      <button class="act-btn ghost" id="btnClear" disabled><span>清空</span></button>
     </div>
   </section>
 </div>
 
-<!-- ============ 开始界面 ============ -->
+<!-- ============ Start screen ============ -->
 <div class="overlay" id="startScreen">
   <div class="start-card">
-    <h1 class="title">小丑战争</h1>
-    <p class="subtitle">JOKER CLASH · 1v1 卡牌对战</p>
+    <h1 class="title">JOKER CLASH</h1>
+    <p class="subtitle">A 1V1 CARD BATTLER</p>
     <div class="rules">
-      <div class="rule"><b>玩法</b>：每回合抽满 8 张手牌，用 4 次出牌机会打出扑克牌型（对子 / 顺子 / 同花 / 葫芦…）。</div>
-      <div class="rule"><b>计分</b>：<span class="hl">得分 =（牌型筹码 + 牌面筹码）× 倍率</span>，小丑牌会疯狂放大这个数字。</div>
-      <div class="rule"><b>伤害</b>：得分 ÷ 95 向上取整，直接砸向对手。先把对方 150 点生命清零者获胜。</div>
-      <div class="rule"><b>奖励</b>：单次出牌得分 ≥ 160 时，可从 3 张小丑牌中挑选 1 张永久强化自己（每回合 1 次，上限 5 张）。</div>
-      <div class="rule"><b>操作</b>：点手牌选中（最多 5 张）→ 出牌；拿不准就点「推荐」让系统替你选最优组合。</div>
+      <div class="rule"><b>THE LOOP</b> — Draw 8 cards each turn, then take 4 plays. Pick 1-5 cards to build a poker hand (Pair, Straight, Flush, Full House…).</div>
+      <div class="rule"><b>SCORING</b> — <span class="hl">Score = (hand chips + card chips) × multiplier</span>. Jokers inflate that number fast.</div>
+      <div class="rule"><b>DAMAGE</b> — Score ÷ 95 (rounded up) hits your opponent directly. First to drop them from 150 HP wins.</div>
+      <div class="rule"><b>REWARD</b> — Score 160+ in one play and you draft 1 of 3 Jokers as a permanent upgrade (once per turn, 5 slots max).</div>
+      <div class="rule"><b>CONTROLS</b> — Click cards to select (max 5), then PLAY. Not sure? Hit BEST and the game picks your strongest combo.</div>
     </div>
     <div class="diff-pick">
-      <span class="dp-label">对手难度</span>
+      <span class="dp-label">OPPONENT DIFFICULTY</span>
       <div class="dp-row" id="diffRow">
-        <button class="dp-btn" data-level="easy">简单</button>
-        <button class="dp-btn active" data-level="normal">普通</button>
-        <button class="dp-btn" data-level="hard">困难</button>
+        <button class="dp-btn" data-level="easy">EASY</button>
+        <button class="dp-btn active" data-level="normal">NORMAL</button>
+        <button class="dp-btn" data-level="hard">HARD</button>
       </div>
     </div>
-    <button class="big-start" id="btnStart">开始对战</button>
+    <button class="big-start" id="btnStart">START GAME</button>
   </div>
 </div>
 
-<!-- ============ 小丑三选一 ============ -->
+<!-- ============ Joker draft ============ -->
 <div class="overlay hidden" id="jokerScreen">
   <div class="pick-wrap">
-    <h2 class="pick-title" id="pickTitle">选择一张小丑牌</h2>
+    <h2 class="pick-title" id="pickTitle">CHOOSE A JOKER</h2>
     <p class="pick-sub" id="pickSub"></p>
     <div class="joker-choices" id="jokerChoices"></div>
   </div>
 </div>
 
-<!-- ============ 结算 ============ -->
+<!-- ============ Game over ============ -->
 <div class="overlay hidden" id="endScreen">
   <div class="end-card">
-    <h1 class="end-title" id="endTitle">胜利</h1>
+    <h1 class="end-title" id="endTitle">VICTORY</h1>
     <p class="end-sub" id="endSub"></p>
     <div class="stats" id="endStats"></div>
-    <button class="big-start" id="btnRestart">再来一局</button>
+    <button class="big-start" id="btnRestart">PLAY AGAIN</button>
   </div>
 </div>
 

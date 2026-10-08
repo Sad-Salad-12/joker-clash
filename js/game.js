@@ -65,8 +65,8 @@ function startGame() {
     phase: 'player',
     turn: 'me',
     round: 1,
-    me: makePlayer('你', false),
-    opp: makePlayer('对手 AI', true),
+    me: makePlayer('YOU', false),
+    opp: makePlayer('OPPONENT', true),
   };
   selected.clear();
   pendingJokerPicks = [];
@@ -81,10 +81,10 @@ function startGame() {
   refillHand(S.me);
   refillHand(S.opp);
   $('game').classList.remove('hidden');
-  $('oppName').textContent = '对手 AI · ' + cfg.label;
+  $('oppName').textContent = 'OPPONENT · ' + cfg.label;
   renderAll();
-  banner('你的回合');
-  log('点击手牌选中，最多 5 张，组合成扑克牌型后出牌。');
+  banner('YOUR TURN');
+  log('Click cards to select (up to 5), then PLAY to score a poker hand.');
 }
 
 /* ============================================================
@@ -120,8 +120,8 @@ function startTurn(who) {
   renderAll();
 
   if (who === 'me') {
-    banner('你的回合');
-    log(`第 ${S.round} 轮 · 出牌 ${p.playsLeft} 次 / 弃牌 ${p.discardsLeft} 次`);
+    banner('YOUR TURN');
+    log(`ROUND ${S.round} · ${p.playsLeft} plays / ${p.discardsLeft} discards left`);
   } else {
     runOppTurn();
   }
@@ -206,7 +206,7 @@ function onCardClick(uid) {
     selected.delete(uid);
   } else {
     if (selected.size >= CONFIG.MAX_SELECT) {
-      log('一次最多出 ' + CONFIG.MAX_SELECT + ' 张牌。');
+      log(`You can play at most ${CONFIG.MAX_SELECT} cards at once.`);
       return;
     }
     selected.add(uid);
@@ -240,7 +240,7 @@ async function doPlay() {
   const out = resolvePlay(S.me, cards, res);
   const foeEl = heroEl(S.opp);
 
-  floatNum(res.total + ' 分', $('readout'), 'score');
+  floatNum(res.total + ' PTS', $('readout'), 'score');
   await sleep(180);
   floatNum('-' + out.realDmg, foeEl, '');
   hitFlash(foeEl);
@@ -261,7 +261,7 @@ async function doPlay() {
   if (checkGameOver()) return;
 
   if (S.me.playsLeft <= 0 || S.me.hand.length === 0) {
-    log('本回合结束。');
+    log('Out of plays — turn over.');
     await sleep(500);
     endTurn('me');
     return;
@@ -291,7 +291,7 @@ async function doDiscard() {
 
   refillHand(S.me);
   renderAll();
-  log(`弃掉 ${cards.length} 张，剩余弃牌次数 ${S.me.discardsLeft}`);
+  log(`Discarded ${cards.length} · ${S.me.discardsLeft} discards left`);
   await sleep(260);
   busy = false;
   renderAll();
@@ -304,8 +304,8 @@ async function runOppTurn() {
   const p = S.opp;
   busy = true;
   renderAll();
-  banner('对手回合');
-  log('对手正在思考…');
+  banner('OPPONENT TURN');
+  log('Opponent is thinking…');
   await sleep(700);
 
   // 弃牌阶段
@@ -319,7 +319,7 @@ async function runOppTurn() {
     p.discardsLeft--;
     refillHand(p);
     renderAll();
-    log(`对手弃掉 ${junk.length} 张牌`);
+    log(`Opponent discarded ${junk.length}`);
     await sleep(520);
   }
 
@@ -332,12 +332,12 @@ async function runOppTurn() {
 
     // 展示 AI 打出的组合
     renderStaged(pick.combo, pick.res);
-    log(`对手打出 ${pick.res.name}（${pick.combo.length} 张）`);
+    log(`Opponent plays ${pick.res.name} (${pick.combo.length} cards)`);
     sfx('play');
     await sleep(620);
 
     const out = resolvePlay(p, pick.combo, pick.res);
-    floatNum(pick.res.total + ' 分', $('readout'), 'score');
+    floatNum(pick.res.total + ' PTS', $('readout'), 'score');
     await sleep(180);
     floatNum('-' + out.realDmg, heroEl(S.me), '');
     hitFlash(heroEl(S.me));
@@ -387,12 +387,12 @@ async function processJokerPicks() {
       const chosen = aiPickJoker(choices, p, difficulty);
       if (p.jokers.length >= CONFIG.MAX_JOKERS) {
         p.jokers.shift();
-        log('对手替换了一张小丑牌');
+        log('Opponent swapped out a Joker');
       }
       addJoker(p, chosen);
       sfx('joker');
       renderAll();
-      log('对手获得小丑牌：' + chosen.name);
+      log('Opponent picked up: ' + chosen.name);
       await sleep(700);
     }
   }
@@ -402,10 +402,10 @@ function askPlayerJoker(pick) {
   return new Promise(resolve => {
     const choices = randomJokerChoices(S.me);
     const full = S.me.jokers.length >= CONFIG.MAX_JOKERS;
-    $('pickTitle').textContent = '打出 ' + pick.score + ' 分！';
+    $('pickTitle').textContent = pick.score + ' POINTS!';
     $('pickSub').textContent = full
-      ? '小丑槽已满 · 选择一张替换掉最早获得的小丑'
-      : '选择一张小丑牌永久加入你的卡组';
+      ? 'Joker slots are full — your pick replaces the oldest Joker'
+      : 'Pick one Joker to keep for the rest of the match';
     const box = $('jokerChoices');
     box.innerHTML = '';
     choices.forEach(j => {
@@ -415,14 +415,14 @@ function askPlayerJoker(pick) {
         '<div class="jc-icon">' + j.icon + '</div>' +
         '<div class="jc-name">' + j.name + '</div>' +
         '<div class="jc-desc">' + j.desc + '</div>' +
-        '<div class="jc-tag">小丑牌</div>';
+        '<div class="jc-tag">JOKER</div>';
       el.onclick = () => {
         if (full) S.me.jokers.shift();
         addJoker(S.me, j);
         sfx('joker');
         $('jokerScreen').classList.add('hidden');
         renderAll();
-        log('你获得小丑牌：' + j.name + '（' + j.desc + '）');
+        log('You picked up: ' + j.name + ' — ' + j.desc);
         resolve();
       };
       box.appendChild(el);
@@ -444,18 +444,19 @@ function checkGameOver() {
 
   setTimeout(() => {
     const t = $('endTitle');
-    t.textContent = draw ? '平局' : (win ? '胜 利' : '失 败');
+    t.textContent = draw ? 'DRAW' : (win ? 'VICTORY' : 'DEFEAT');
     t.className = 'end-title ' + (draw ? '' : (win ? 'win' : 'lose'));
     $('endSub').textContent = draw
-      ? '双方同归于尽'
-      : (win ? `你击倒了对手，剩余生命 ${S.me.hp}` : `你被对手击倒了，对手剩余生命 ${S.opp.hp}`);
+      ? 'You knocked each other out'
+      : (win ? `You finished them off with ${S.me.hp} HP left`
+             : `You went down — opponent still had ${S.opp.hp} HP`);
 
     const stats = [
-      ['总得分', S.me.totalScore],
-      ['最高单次', S.me.bestPlay],
-      ['造成伤害', S.me.stats.damage],
-      ['进行轮数', S.round],
-      ['小丑数量', S.me.jokers.length],
+      ['TOTAL SCORE', S.me.totalScore],
+      ['BEST PLAY', S.me.bestPlay],
+      ['DAMAGE DEALT', S.me.stats.damage],
+      ['ROUNDS', S.round],
+      ['JOKERS', S.me.jokers.length],
     ];
     $('endStats').innerHTML = stats.map(s =>
       '<div class="stat"><div class="sv">' + s[1] + '</div><div class="sl">' + s[0] + '</div></div>'
@@ -485,7 +486,7 @@ function renderAll() {
   $('oppTurnScore').textContent = S.opp.turnScore;
   $('discardMe').textContent = S.me.discardPile.length;
   $('discardOpp').textContent = S.opp.discardPile.length;
-  $('etSub').textContent = '出牌 ' + S.me.playsLeft;
+  $('etSub').textContent = 'PLAYS ' + S.me.playsLeft;
   renderButtons();
   if (S.phase === 'player') updateReadout();
 }
@@ -524,7 +525,17 @@ function layoutFan(container, spacing) {
   const kids = [...container.children];
   const n = kids.length;
   if (!n) return;
-  const spread = spacing || Math.min(100, 780 / n);
+  // Size the fan from the container's real width so it can never overflow.
+  // Edge cards are rotated, so budget for the rotated bounding box, not the raw width.
+  const avail = container.clientWidth || 780;
+  const cardW = kids[0].offsetWidth || 92;
+  const cardH = kids[0].offsetHeight || 130;
+  const rad = 20 * Math.PI / 180;                       // max tilt, matches maxRot below
+  // transform-origin sits below the card (50% 165%), so a tilt also swings the card
+  // sideways: budget for that swing plus the rotated half-width at both fan ends.
+  const tilt = 1.15 * cardH * Math.sin(rad) +
+               (cardW * Math.cos(rad) + cardH * Math.sin(rad)) / 2;
+  const spread = spacing || Math.max(30, Math.min(100, ((avail - 2 * tilt) * 0.95) / Math.max(n - 1, 1)));
   const totalW = spread * (n - 1);
   const maxRot = 20;
   kids.forEach((el, i) => {
@@ -614,7 +625,7 @@ function renderHero(p, hpEl, barEl, armorEl) {
 function renderStaged(cards, res) {
   const box = $('stagedCards');
   if (!cards || !cards.length) {
-    box.innerHTML = '<div class="empty-hint">选 择 手 牌</div>';
+    box.innerHTML = '<div class="empty-hint">PICK CARDS</div>';
     return;
   }
   box.innerHTML = '';
@@ -643,11 +654,11 @@ function showResult(res) {
   void $('finalScore').offsetWidth;
   $('finalScore').classList.add('pop');
   const dmg = Math.max(1, Math.ceil(res.total / CONFIG.DAMAGE_DIVISOR));
-  $('dmgPreview').textContent = '造成 ' + dmg + ' 点伤害';
+  $('dmgPreview').textContent = 'DEALS ' + dmg + ' DAMAGE';
 }
 
 function resetReadout() {
-  $('handTypeName').textContent = '选择手牌';
+  $('handTypeName').textContent = 'PICK CARDS';
   $('chipsVal').textContent = '0';
   $('multVal').textContent = '0';
   $('xmultVal').classList.add('hidden');
@@ -676,7 +687,7 @@ function doHint() {
   renderHandMe();
   updateReadout();
   renderButtons();
-  log('已为你选中推荐组合：' + pick.res.name + '（' + pick.res.total + ' 分）');
+  log('Best combo selected: ' + pick.res.name + ' — ' + pick.res.total + ' points');
 }
 
 /* ============================================================
@@ -785,8 +796,8 @@ function makeCard(suitId, rank) {
 function setupShot() {
   S = {
     phase: 'player', turn: 'me', round: 4,
-    me: makePlayer('你', false),
-    opp: makePlayer('对手 AI', true),
+    me: makePlayer('YOU', false),
+    opp: makePlayer('OPPONENT', true),
   };
   S.me.hp = 96;
   S.opp.hp = 62;
@@ -819,10 +830,10 @@ function setupShot() {
   $('endScreen').classList.add('hidden');
   $('jokerScreen').classList.add('hidden');
   $('game').classList.remove('hidden');
-  $('oppName').textContent = '对手 AI · 困难';
+  $('oppName').textContent = 'OPPONENT · HARD';
 
   renderAll();
-  log('皇家同花顺凑成了，这一手足够终结比赛。');
+  log('Royal Flush assembled — this hand ends the match.');
 }
 
 bind();

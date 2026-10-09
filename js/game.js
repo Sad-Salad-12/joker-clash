@@ -503,21 +503,20 @@ function renderButtons() {
 }
 
 /* ---------- 手牌 ---------- */
+const SUIT_FILE = { S: 'Spades', H: 'Hearts', C: 'Clubs', D: 'Diamonds' };
+
 function makeCardEl(c) {
   const el = document.createElement('div');
   el.className = 'card ' + c.color;
   el.dataset.uid = c.uid;
-  el.innerHTML =
-    '<div class="c-corner c-tl"><span>' + c.label + '</span><span class="c-pip">' + c.suitSymbol + '</span></div>' +
-    '<div class="c-center">' + c.suitSymbol + '</div>' +
-    '<div class="c-corner c-br"><span>' + c.label + '</span><span class="c-pip">' + c.suitSymbol + '</span></div>';
+  el.innerHTML = '<img class="c-img" draggable="false" alt="" src="assets/cards/card' + SUIT_FILE[c.suit] + c.label + '.png">';
   return el;
 }
 
 function makeBackEl() {
   const el = document.createElement('div');
   el.className = 'card back';
-  el.innerHTML = '<div class="c-center">✦</div>';
+  el.innerHTML = '<img class="c-img" draggable="false" alt="" src="assets/cards/back.png">';
   return el;
 }
 
@@ -632,7 +631,7 @@ function renderStaged(cards, res) {
   cards.forEach(c => {
     const el = document.createElement('div');
     el.className = 'mini ' + c.color;
-    el.innerHTML = '<div class="m-rank">' + c.label + '</div><div class="m-suit">' + c.suitSymbol + '</div>';
+    el.innerHTML = '<img class="m-img" draggable="false" alt="" src="assets/cards/card' + SUIT_FILE[c.suit] + c.label + '.png">';
     box.appendChild(el);
   });
   if (res) showResult(res);
@@ -837,6 +836,22 @@ function setupShot() {
 }
 
 bind();
+
+// 后台预热牌面素材（延迟启动，不拖慢首屏）
+setTimeout(function preloadCards() {
+  const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+  const urls = ['assets/cards/back.png'];
+  ['Spades', 'Hearts', 'Clubs', 'Diamonds'].forEach(s => {
+    ranks.forEach(r => urls.push('assets/cards/card' + s + r + '.png'));
+  });
+  let i = 0;
+  (function next() {
+    if (i >= urls.length) return;
+    const im = new Image();
+    im.onload = im.onerror = next;   // 串行预热，避免抢占带宽
+    im.src = urls[i++];
+  })();
+}, 700);
 
 // ?shot=1 直接进入演示局面，否则显示开始界面
 if (new URLSearchParams(location.search).has('shot')) {

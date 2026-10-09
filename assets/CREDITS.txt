@@ -1,0 +1,24 @@
+Asset credits — JOKER CLASH
+==========================
+
+All third-party assets used in this project are free for commercial use.
+
+1) Playing cards  →  assets/cards/*.png
+   Source : "Board Game Pack" by Kenney
+   URL    : https://kenney.nl/assets/boardgame-pack
+   License: CC0 1.0 Universal (public domain dedication)
+   Note   : attribution not required; credited here anyway.
+
+2) Buttons & panels  →  assets/ui/*.png
+   Source : "UI Pack: RPG extension" by Kenney
+   URL    : https://kenney.nl/assets/ui-pack-rpg-extension
+   License: CC0 1.0 Universal (public domain dedication)
+
+3) Font: Cinzel  →  assets/fonts/Cinzel.ttf
+   Source : Google Fonts — The Cinzel Project Authors
+   URL    : https://fonts.google.com/specimen/Cinzel
+   License: SIL Open Font License 1.1 (see assets/fonts/OFL.txt)
+   Note   : OFL.txt is bundled as required by the license.
+
+Everything else (layout, styling, game logic, sound synthesis,
+the felt table and all UI chrome drawn in CSS) was written for this project.

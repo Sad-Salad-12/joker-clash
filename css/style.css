@@ -24,13 +24,26 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(ellipse at 50% 42%, #4a2e18 0%, #22140a 55%, #0d0703 100%),
-    repeating-linear-gradient(92deg, rgba(0,0,0,.16) 0 3px, rgba(255,255,255,.02) 3px 7px);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 38%, #4d3018 0%, #2a190b 52%, #0c0602 100%);
   user-select: none;
   -webkit-font-smoothing: antialiased;
 }
 
 .hidden { display: none !important; }
+
+/* Display font — Cinzel (SIL OFL 1.1) */
+@font-face {
+  font-family: 'Cinzel';
+  src: url('../assets/fonts/Cinzel.ttf') format('truetype');
+  font-weight: 400 900;
+  font-display: swap;
+}
+.hand-type, .final, .title, .end-title, .pick-title,
+.big-start, .act-btn, .end-turn, .et-main, .hero-name,
+.dp-btn, .jc-name, .stat .sv, .turn-banner {
+  font-family: 'Cinzel', Georgia, serif;
+}
 
 /* ============================================================
  *  主容器
@@ -127,11 +140,13 @@ body {
 .jslot {
   width: 58px; height: 76px;
   border-radius: 8px;
-  border: 2px dashed rgba(232,194,106,.22);
-  background: rgba(0,0,0,.22);
+  border: 2px dashed rgba(232,194,106,.3);
+  background: rgba(0,0,0,.32);
+  box-shadow: inset 0 0 12px rgba(0,0,0,.6);
   flex: 0 0 auto;
   display: grid; place-items: center;
-  font-size: 22px; opacity: .3;
+  font-size: 17px; opacity: .55;
+  color: rgba(232,194,106,.75);
 }
 .joker {
   position: relative;
@@ -206,13 +221,32 @@ body {
   min-height: 130px;
 }
 .board-felt {
-  position: absolute; inset: 6px 40px;
-  border-radius: 50% / 42%;
+  position: absolute;
+  left: 46px; right: 46px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: min(100%, 378px);        /* 不再随窗口无限撑大 */
+  border-radius: 50% / 40%;
   background:
-    radial-gradient(ellipse at 50% 40%, var(--felt-1) 0%, var(--felt-2) 78%);
-  box-shadow: inset 0 0 60px rgba(0,0,0,.75), 0 0 0 3px rgba(232,194,106,.18);
-  opacity: .9;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 38%, #357a48 0%, var(--felt-1) 45%, var(--felt-2) 88%);
+  box-shadow:
+    inset 0 0 0 2px rgba(232,194,106,.18),
+    inset 0 0 60px rgba(0,0,0,.72),
+    0 0 0 6px #37220f,                      /* 桌沿木边 */
+    0 0 0 8px rgba(232,194,106,.3),
+    0 0 30px rgba(0,0,0,.75);
 }
+
+/* 桌面聚光，让战场有焦点 */
+.board::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 58% 44% at 50% 46%, rgba(255,236,190,.075), transparent 72%);
+  pointer-events: none;
+  z-index: 1;
+}
+.play-area, .readout { z-index: 3; }
 
 /* ---------- 已选牌展示 ---------- */
 .play-area {
@@ -222,12 +256,13 @@ body {
 }
 .staged-cards { display: flex; gap: 7px; align-items: center; justify-content: center; height: 100%; }
 .staged-cards .mini {
-  width: 72px; height: 102px;
+  width: 78px; height: 106px;
   border-radius: 7px;
-  background: linear-gradient(170deg, #fffdf6, #e6dcc6);
-  border: 2px solid #8a6a34;
+  overflow: hidden;
+  background: #efe6d2;
   box-shadow: 0 6px 16px rgba(0,0,0,.6);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  outline: 1px solid rgba(0,0,0,.35);
+  outline-offset: -1px;
   animation: stageIn .28s cubic-bezier(.2,1.3,.4,1);
   position: relative;
 }
@@ -235,22 +270,18 @@ body {
   from { transform: translateY(50px) scale(.6); opacity: 0; }
   to   { transform: none; opacity: 1; }
 }
-.mini .m-rank { font: 700 19px/1 "Georgia", serif; }
-.mini .m-suit { font-size: 24px; line-height: 1; }
-.mini.red  { color: #c62828; }
-.mini.black { color: #1a1a1a; }
+.mini .m-img { width: 100%; height: 100%; display: block; }
 .empty-hint { font-size: 13px; opacity: .45; letter-spacing: 1px; }
 
 /* ---------- 计分板 ---------- */
 .readout {
   position: relative; flex: 0 0 auto;
-  width: 230px;
+  width: 236px;
   text-align: center;
-  padding: 10px 8px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(20,12,5,.9), rgba(10,6,2,.9));
-  border: 2px solid rgba(232,194,106,.45);
-  box-shadow: 0 8px 26px rgba(0,0,0,.6);
+  padding: 12px 10px;
+  border: 14px solid transparent;
+  border-image: url("../assets/ui/panelInset.png") 16 fill round;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.55));
 }
 .hand-type {
   font-size: 15px; font-weight: 700; letter-spacing: 2px;
@@ -330,35 +361,27 @@ body {
 .card {
   position: absolute;
   left: 50%; bottom: 0;
-  width: 92px; height: 130px;
-  margin-left: -46px;
+  width: 100px; height: 136px;
+  margin-left: -50px;
   transform-origin: 50% 165%;
   transform: translateX(var(--x, 0px)) rotate(var(--rot, 0deg)) translateY(var(--lift, 0px));
   transition: transform .22s cubic-bezier(.2,.9,.3,1.1), box-shadow .2s, filter .2s;
   cursor: pointer;
   border-radius: 9px;
-  background: linear-gradient(168deg, #fffdf5 0%, #f6efdd 55%, #e3d8bd 100%);
-  border: 2px solid #6f5220;
+  background: #efe6d2;
   box-shadow: 0 6px 16px rgba(0,0,0,.65);
   overflow: hidden;
+  outline: 1px solid rgba(0,0,0,.38);
+  outline-offset: -1px;
   will-change: transform;
 }
-.card .c-corner {
-  position: absolute; font: 700 15px/1 "Georgia", serif;
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
+.card .c-img {
+  width: 100%; height: 100%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
-.card .c-tl { left: 5px; top: 5px; }
-.card .c-br { right: 5px; bottom: 5px; transform: rotate(180deg); }
-.card .c-pip { font-size: 15px; line-height: 1; }
-.card .c-center {
-  position: absolute; inset: 0;
-  display: grid; place-items: center;
-  font-size: 46px;
-  opacity: .92;
-}
-.card.red   { color: #c62828; }
-.card.black { color: #1c1c1c; }
-.card.red   .c-center { text-shadow: 0 2px 5px rgba(198,40,40,.28); }
 
 .card:hover {
   transform: translateX(var(--x, 0px)) rotate(0deg) translateY(-86px) scale(1.32);
@@ -369,8 +392,7 @@ body {
 .card.selected {
   transform: translateX(var(--x, 0px)) rotate(0deg) translateY(-56px) scale(1.12);
   z-index: 150 !important;
-  border-color: var(--gold);
-  box-shadow: 0 0 0 2px var(--gold), 0 0 22px 4px rgba(232,194,106,.6), 0 14px 28px rgba(0,0,0,.75);
+  box-shadow: 0 0 0 2px var(--gold), 0 0 22px 4px rgba(232,194,106,.55), 0 14px 28px rgba(0,0,0,.75);
 }
 .card.selected:hover {
   transform: translateX(var(--x, 0px)) rotate(0deg) translateY(-92px) scale(1.34);
@@ -387,19 +409,9 @@ body {
   from { transform: translate(-260px, -40px) rotate(-40deg) scale(.5); opacity: 0; }
 }
 
-/* 牌背 */
-.card.back {
-  background:
-    repeating-linear-gradient(45deg, #2b1a52 0 6px, #3d2670 6px 12px);
-  border-color: #4a2f8a;
-}
-.card.back .c-center {
-  font-size: 30px; color: var(--gold); opacity: .85;
-}
-.card.back::after {
-  content: ""; position: absolute; inset: 7px;
-  border: 1px solid rgba(232,194,106,.35); border-radius: 5px;
-}
+/* 牌背（图片素材，压暗以贴合暗色桌面） */
+.card.back { background: #22304f; }
+.card.back .c-img { filter: brightness(.72) saturate(.8); }
 
 /* ============================================================
  *  按钮
@@ -412,40 +424,40 @@ body {
   padding-bottom: 14px;
 }
 .act-btn {
-  width: 90px; padding: 9px 0;
-  border-radius: 9px; border: none;
-  font: 700 14px/1 inherit; letter-spacing: 1px;
-  color: #2a1a06; cursor: pointer;
-  background: linear-gradient(180deg, #ffdf94, #d9a233 60%, #a9741a);
-  box-shadow: 0 5px 14px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.5);
+  width: 96px; height: 40px; padding: 0;
+  border: 10px solid transparent;
+  border-image: url("../assets/ui/buttonLong.png") 12 fill round;
+  font: 800 13px/1 inherit; letter-spacing: 1px;
+  color: #4a3010; cursor: pointer;
+  text-shadow: 0 1px 0 rgba(255,255,255,.55);
   transition: transform .12s, filter .12s;
 }
-.act-btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
-.act-btn:active:not(:disabled) { transform: translateY(1px); }
-.act-btn:disabled { opacity: .38; cursor: default; filter: grayscale(.7); }
+.act-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.07); }
+.act-btn:active:not(:disabled) { transform: translateY(1px); filter: brightness(.94); }
+.act-btn:disabled { opacity: .55; cursor: default; filter: grayscale(.85) brightness(.72); }
 .act-btn.ghost {
-  background: linear-gradient(180deg, rgba(60,40,20,.9), rgba(30,18,8,.9));
-  color: var(--gold); border: 1px solid rgba(232,194,106,.4);
-  box-shadow: 0 4px 10px rgba(0,0,0,.5);
+  border-image-source: url("../assets/ui/buttonLongBrown.png");
+  color: #f2e2c0;
+  text-shadow: 0 1px 2px rgba(0,0,0,.55);
 }
 
 .end-turn {
   position: relative;
-  width: 116px; padding: 12px 0;
-  border-radius: 10px; border: 2px solid #8fd66b;
-  font: 700 15px/1.25 inherit; letter-spacing: 1px;
-  color: #08240a; cursor: pointer;
-  background: linear-gradient(180deg, #b9f08a, #5fbf46 55%, #3d8a2c);
-  box-shadow: 0 6px 16px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.45);
+  width: 116px; height: 48px; padding: 0;
+  border: 10px solid transparent;
+  border-image: url("../assets/ui/buttonLong.png") 12 fill round;
+  font: 800 13px/1.25 inherit; letter-spacing: 1px;
+  color: #4a3010; cursor: pointer;
+  text-shadow: 0 1px 0 rgba(255,255,255,.55);
   transition: transform .12s, filter .12s;
 }
-.end-turn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
-.end-turn:disabled { opacity: .45; cursor: default; filter: grayscale(.6); border-color: #888; }
-.et-sub { display: block; font-size: 10px; opacity: .75; letter-spacing: 0; margin-top: 2px; }
+.end-turn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.07); }
+.end-turn:disabled { opacity: .5; cursor: default; filter: grayscale(.85) brightness(.72); }
+.et-sub { display: block; font-family: system-ui, sans-serif; font-size: 10px; opacity: .8; letter-spacing: 0; margin-top: 3px; font-weight: 600; }
 .end-turn.attention { animation: pulseGreen 1.4s infinite; }
 @keyframes pulseGreen {
-  0%,100% { box-shadow: 0 6px 16px rgba(0,0,0,.6); }
-  50% { box-shadow: 0 0 20px 5px rgba(120,230,90,.8); }
+  0%,100% { filter: drop-shadow(0 0 0 rgba(150,235,100,0)) drop-shadow(0 4px 10px rgba(0,0,0,.4)); }
+  50% { filter: drop-shadow(0 0 10px rgba(150,235,100,.9)) drop-shadow(0 4px 10px rgba(0,0,0,.4)); }
 }
 
 /* ============================================================
@@ -491,29 +503,31 @@ body {
 .dp-label { font-size: 12px; opacity: .6; letter-spacing: 2px; }
 .dp-row { display: flex; gap: 10px; justify-content: center; margin-top: 9px; }
 .dp-btn {
-  padding: 9px 26px; border-radius: 8px; cursor: pointer;
-  font: 700 14px/1 inherit; letter-spacing: 1px;
-  color: var(--gold); background: rgba(0,0,0,.35);
-  border: 1px solid rgba(232,194,106,.35);
-  transition: all .15s;
+  width: 112px; height: 42px; padding: 0; cursor: pointer;
+  border: 10px solid transparent;
+  border-image: url("../assets/ui/buttonLongBrown.png") 12 fill round;
+  font: 800 13px/1 inherit; letter-spacing: 2px;
+  color: #f2e2c0; text-shadow: 0 1px 2px rgba(0,0,0,.55);
+  transition: transform .12s, filter .12s;
 }
-.dp-btn:hover { background: rgba(232,194,106,.15); }
+.dp-btn:hover { transform: translateY(-1px); filter: brightness(1.12); }
 .dp-btn.active {
-  background: linear-gradient(180deg, #ffdf94, #c9922a);
-  color: #2a1a06; border-color: #ffe9b5;
-  box-shadow: 0 0 16px rgba(232,194,106,.5);
+  border-image-source: url("../assets/ui/buttonLong.png");
+  color: #4a3010; text-shadow: 0 1px 0 rgba(255,255,255,.55);
+  filter: drop-shadow(0 0 9px rgba(232,194,106,.7));
 }
 
 .big-start {
-  width: 240px; padding: 15px 0;
-  border-radius: 12px; border: 2px solid #ffe9b5;
-  font: 800 18px/1 inherit; letter-spacing: 3px;
-  color: #2a1a06; cursor: pointer;
-  background: linear-gradient(180deg, #ffe49f, #d9a233 60%, #a9741a);
-  box-shadow: 0 8px 22px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.5);
+  width: 252px; height: 58px; padding: 0;
+  border: 15px solid transparent;
+  border-image: url("../assets/ui/buttonLong.png") 15 fill round;
+  font: 800 17px/1 inherit; letter-spacing: 3px;
+  color: #452c0e; cursor: pointer;
+  text-shadow: 0 1px 0 rgba(255,255,255,.55);
   transition: transform .12s, filter .12s;
 }
-.big-start:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.big-start:hover { transform: translateY(-2px); filter: brightness(1.07); }
+.big-start:active { transform: translateY(1px); filter: brightness(.95); }
 
 /* 小丑三选一 */
 .pick-wrap { text-align: center; }
@@ -609,37 +623,39 @@ body {
   .hero-face { font-size: 34px; }
   .hp-badge { width: 36px; height: 36px; font: 700 18px/1 "Georgia", serif; }
   .armor-badge { width: 30px; height: 30px; font-size: 13px; }
-  .card { width: 78px; height: 112px; margin-left: -39px; }
-  .hand-fan { height: 132px; }
+  .card { width: 86px; height: 117px; margin-left: -43px; }
+  .hand-fan { height: 130px; }
   .hand-opp { height: 78px; }
   .opp-top { height: 104px; }
   .me-bottom { height: 116px; }
   .joker-rack { min-height: 70px; }
   .joker, .jslot { width: 52px; height: 68px; }
-  .act-btn { width: 84px; padding: 8px 0; font-size: 13px; }
+  .act-btn { width: 86px; height: 36px; font-size: 12px; }
+  .end-turn { width: 104px; height: 44px; }
   .final { font-size: 34px; }
-  .play-area { width: 340px; height: 180px; }
-  .staged-cards .mini { width: 62px; height: 88px; }
+  .play-area { width: 340px; height: 176px; }
+  .staged-cards .mini { width: 62px; height: 84px; }
 }
 
 @media (max-height: 660px) {
   .hero { width: 62px; height: 62px; }
   .hero-face { font-size: 28px; }
   .hp-badge { width: 32px; height: 32px; font: 700 16px/1 "Georgia", serif; }
-  .card { width: 66px; height: 96px; margin-left: -33px; }
-  .hand-fan { height: 112px; }
+  .card { width: 74px; height: 101px; margin-left: -37px; }
+  .hand-fan { height: 118px; }
   .hand-opp { height: 64px; }
   .opp-top { height: 92px; }
   .me-bottom { height: 104px; }
   .joker-rack { min-height: 62px; }
   .joker, .jslot { width: 46px; height: 60px; }
   .j-name { font-size: 8px; }
-  .act-btn { width: 78px; padding: 7px 0; font-size: 12px; }
+  .act-btn { width: 78px; height: 32px; font-size: 11px; }
+  .end-turn { width: 96px; height: 40px; font-size: 12px; }
   .board { min-height: 100px; gap: 24px; }
   .final { font-size: 28px; }
   .hand-type { font-size: 13px; }
-  .play-area { width: 300px; height: 150px; }
-  .staged-cards .mini { width: 54px; height: 78px; }
+  .play-area { width: 300px; height: 146px; }
+  .staged-cards .mini { width: 54px; height: 74px; }
   .title { font-size: 34px; }
   .rules { gap: 6px; margin: 14px 0 12px; }
   .rule { font-size: 11px; padding: 6px 10px; line-height: 1.5; }

@@ -13,11 +13,15 @@ let busy = false;                  // 动画 / AI 进行中
 let pendingJokerPicks = [];
 let audioCtx = null;
 let difficulty = 'normal';
+let soundEnabled = true;
+let focusAfterDraft = false;
+try { soundEnabled = localStorage.getItem('joker-clash-sound') !== 'off'; } catch (_) {}
 
 /* ============================================================
  *  音效
  * ============================================================ */
 function sfx(kind) {
+  if (!soundEnabled) return;
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -61,6 +65,8 @@ function makePlayer(name, isAI) {
 }
 
 function startGame() {
+  $('game').inert = false;
+  document.querySelector('.table-header').inert = false;
   S = {
     phase: 'player',
     turn: 'me',
@@ -228,6 +234,8 @@ async function doPlay() {
   sfx('play');
 
   const res = evaluate(cards, S.me, S.opp, currentPlayIndex(S.me));
+  renderStaged(cards, res);
+  renderButtons();
 
   // 出牌飞出动画
   cards.forEach(c => {
@@ -238,6 +246,7 @@ async function doPlay() {
   selected.clear();
 
   const out = resolvePlay(S.me, cards, res);
+  log(res.name + ' · ' + res.total + ' points · ' + out.realDmg + ' damage');
   const foeEl = heroEl(S.opp);
 
   floatNum(res.total + ' PTS', $('readout'), 'score');
@@ -409,10 +418,11 @@ function askPlayerJoker(pick) {
     const box = $('jokerChoices');
     box.innerHTML = '';
     choices.forEach(j => {
-      const el = document.createElement('div');
+      const el = document.createElement('button');
+      el.type = 'button';
       el.className = 'jcard';
       el.innerHTML =
-        '<div class="jc-icon">' + j.icon + '</div>' +
+        '<div class="jc-icon"><img src="assets/art/' + j.id + '.svg" alt=""></div>' +
         '<div class="jc-name">' + j.name + '</div>' +
         '<div class="jc-desc">' + j.desc + '</div>' +
         '<div class="jc-tag">JOKER</div>';
@@ -421,13 +431,19 @@ function askPlayerJoker(pick) {
         addJoker(S.me, j);
         sfx('joker');
         $('jokerScreen').classList.add('hidden');
+        $('game').inert = false;
+        document.querySelector('.table-header').inert = false;
         renderAll();
         log('You picked up: ' + j.name + ' — ' + j.desc);
+        focusAfterDraft = true;
         resolve();
       };
       box.appendChild(el);
     });
     $('jokerScreen').classList.remove('hidden');
+    $('game').inert = true;
+    document.querySelector('.table-header').inert = true;
+    box.querySelector('button').focus();
   });
 }
 
@@ -462,6 +478,9 @@ function checkGameOver() {
       '<div class="stat"><div class="sv">' + s[1] + '</div><div class="sl">' + s[0] + '</div></div>'
     ).join('');
     $('endScreen').classList.remove('hidden');
+    $('game').inert = true;
+    document.querySelector('.table-header').inert = true;
+    $('btnRestart').focus();
     sfx(win ? 'win' : 'lose');
   }, 700);
   return true;
@@ -487,36 +506,42 @@ function renderAll() {
   $('discardMe').textContent = S.me.discardPile.length;
   $('discardOpp').textContent = S.opp.discardPile.length;
   $('etSub').textContent = 'PLAYS ' + S.me.playsLeft;
+  $('tableStatus').textContent = 'ROUND ' + String(S.round).padStart(2, '0') + ' / ' + (S.phase === 'player' ? 'YOUR TURN' : S.phase === 'over' ? 'MATCH OVER' : 'HOUSE TURN');
+  $('handResources').textContent = S.me.playsLeft + ' PLAYS · ' + S.me.discardsLeft + ' DISCARDS';
   renderButtons();
-  if (S.phase === 'player') updateReadout();
+  if (S.phase === 'player' && !busy) updateReadout();
 }
 
 function renderButtons() {
   const myTurn = S.phase === 'player' && !busy;
   const n = selected.size;
+  $('selectionCount').textContent = n + ' / 5 SELECTED';
   $('btnPlay').disabled = !myTurn || n === 0 || S.me.playsLeft <= 0;
   $('btnDiscard').disabled = !myTurn || n === 0 || S.me.discardsLeft <= 0;
   $('btnHint').disabled = !myTurn || S.me.playsLeft <= 0;
   $('btnClear').disabled = !myTurn || n === 0;
   $('btnEnd').disabled = !myTurn;
   $('btnEnd').classList.toggle('attention', myTurn && S.me.playsLeft <= 0);
+  if (myTurn && focusAfterDraft) { $('btnHint').focus(); focusAfterDraft = false; }
 }
 
 /* ---------- 手牌 ---------- */
 const SUIT_FILE = { S: 'Spades', H: 'Hearts', C: 'Clubs', D: 'Diamonds' };
 
 function makeCardEl(c) {
-  const el = document.createElement('div');
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.setAttribute('aria-label', c.label + ' of ' + SUIT_FILE[c.suit]);
   el.className = 'card ' + c.color;
   el.dataset.uid = c.uid;
-  el.innerHTML = '<img class="c-img" draggable="false" alt="" src="assets/cards/card' + SUIT_FILE[c.suit] + c.label + '.png">';
+  el.innerHTML = '<img class="c-img" draggable="false" alt="" src="assets/deck/' + SUIT_FILE[c.suit] + c.label + '.svg">';
   return el;
 }
 
 function makeBackEl() {
   const el = document.createElement('div');
   el.className = 'card back';
-  el.innerHTML = '<img class="c-img" draggable="false" alt="" src="assets/cards/back.png">';
+  el.innerHTML = '<img class="c-img" draggable="false" alt="" src="assets/art/card-back.svg">';
   return el;
 }
 
@@ -534,7 +559,7 @@ function layoutFan(container, spacing) {
   // sideways: budget for that swing plus the rotated half-width at both fan ends.
   const tilt = 1.15 * cardH * Math.sin(rad) +
                (cardW * Math.cos(rad) + cardH * Math.sin(rad)) / 2;
-  const spread = spacing || Math.max(30, Math.min(100, ((avail - 2 * tilt) * 0.95) / Math.max(n - 1, 1)));
+  const spread = Math.min(spacing || 100, Math.max(12, ((avail - 2 * tilt) * 0.95) / Math.max(n - 1, 1)));
   const totalW = spread * (n - 1);
   const maxRot = 20;
   kids.forEach((el, i) => {
@@ -550,6 +575,7 @@ function layoutFan(container, spacing) {
 }
 
 function renderHandMe() {
+  const focusUid = document.activeElement?.closest('#handMe .card')?.dataset.uid;
   const box = $('handMe');
   const old = new Map();
   [...box.children].forEach(el => old.set(el.dataset.uid, el));
@@ -559,9 +585,12 @@ function renderHandMe() {
     if (!el) { el = makeCardEl(c); el.classList.add('dealing'); }
     if (selected.has(c.uid)) el.classList.add('selected'); else el.classList.remove('selected');
     if (busy || S.phase !== 'player') el.classList.add('disabled'); else el.classList.remove('disabled');
+    el.setAttribute('aria-pressed', String(selected.has(c.uid)));
+    el.disabled = busy || S.phase !== 'player';
     box.appendChild(el);
   });
   layoutFan(box);
+  if (focusUid) [...box.children].find(el => el.dataset.uid === focusUid)?.focus({preventScroll:true});
 }
 
 function renderHandOpp() {
@@ -585,8 +614,10 @@ function renderJokers(p, box) {
   p.jokers.forEach(j => {
     const el = document.createElement('div');
     el.className = 'joker';
-    el.dataset.desc = j.name + '：' + j.desc;
-    el.innerHTML = '<div class="j-icon">' + j.icon + '</div><div class="j-name">' + j.name + '</div>';
+    el.dataset.desc = j.name + ': ' + j.desc;
+    el.tabIndex = 0;
+    el.setAttribute('aria-label', j.name + ': ' + j.desc);
+    el.innerHTML = '<div class="j-icon"><img src="assets/art/' + j.id + '.svg" alt=""></div><div class="j-name">' + j.name + '</div>';
     box.appendChild(el);
   });
   for (let i = p.jokers.length; i < CONFIG.MAX_JOKERS; i++) {
@@ -631,7 +662,7 @@ function renderStaged(cards, res) {
   cards.forEach(c => {
     const el = document.createElement('div');
     el.className = 'mini ' + c.color;
-    el.innerHTML = '<img class="m-img" draggable="false" alt="" src="assets/cards/card' + SUIT_FILE[c.suit] + c.label + '.png">';
+    el.innerHTML = '<img class="m-img" draggable="false" alt="" src="assets/deck/' + SUIT_FILE[c.suit] + c.label + '.svg">';
     box.appendChild(el);
   });
   if (res) showResult(res);
@@ -727,6 +758,13 @@ function log(text) { $('logLine').textContent = text; }
  *  绑定
  * ============================================================ */
 function bind() {
+  const updateSound = () => { $('btnSound').textContent = soundEnabled ? 'SOUND ON' : 'SOUND OFF'; $('btnSound').setAttribute('aria-pressed', String(soundEnabled)); };
+  updateSound();
+  $('btnSound').onclick = () => { soundEnabled = !soundEnabled; try { localStorage.setItem('joker-clash-sound', soundEnabled ? 'on' : 'off'); } catch (_) {} updateSound(); sfx('click'); };
+  $('btnHelp').onclick = () => $('rulesDialog').showModal();
+  $('btnCloseHelp').onclick = () => $('rulesDialog').close();
+  window.addEventListener('resize', () => { if (S) { layoutFan($('handMe')); layoutFan($('handOpp'), 46); } });
+
   $('handMe').addEventListener('click', e => {
     const el = e.target.closest('.card');
     if (el && el.dataset.uid) onCardClick(el.dataset.uid);
@@ -756,7 +794,8 @@ function bind() {
     const b = e.target.closest('.dp-btn');
     if (!b) return;
     difficulty = b.dataset.level;
-    [...$('diffRow').children].forEach(x => x.classList.toggle('active', x === b));
+    [...$('diffRow').children].forEach(x => { x.classList.toggle('active', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    $('difficultyNote').textContent = {easy: 'Find your rhythm. A more forgiving opponent.', normal: 'A fair fight. Build your edge one hand at a time.', hard: 'The House plays its strongest hands. Bring your best.'}[difficulty];
     sfx('click');
   });
 
@@ -772,7 +811,10 @@ function bind() {
   };
 
   document.addEventListener('keydown', e => {
-    if (!S || S.phase !== 'player' || busy) return;
+    if (!S || S.phase !== 'player' || busy || $('rulesDialog').open || !$('jokerScreen').classList.contains('hidden')) return;
+    if (e.target.closest('input, select, textarea')) return;
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('button, a')) return;
+    if (/^[1-8]$/.test(e.key)) { const card = S.me.hand[Number(e.key) - 1]; if (card) onCardClick(card.uid); }
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!$('btnPlay').disabled) doPlay(); }
     if (e.key === 'Escape') { selected.clear(); renderHandMe(); updateReadout(); renderButtons(); }
     if (e.key === 'h' || e.key === 'H') doHint();
@@ -832,7 +874,7 @@ function setupShot() {
   $('oppName').textContent = 'OPPONENT · HARD';
 
   renderAll();
-  log('Royal Flush assembled — this hand ends the match.');
+  log('STAGED PREVIEW · Royal Flush with Doubler and Court Jester.');
 }
 
 bind();
@@ -840,9 +882,9 @@ bind();
 // 后台预热牌面素材（延迟启动，不拖慢首屏）
 setTimeout(function preloadCards() {
   const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-  const urls = ['assets/cards/back.png'];
+  const urls = ['assets/art/card-back.svg'];
   ['Spades', 'Hearts', 'Clubs', 'Diamonds'].forEach(s => {
-    ranks.forEach(r => urls.push('assets/cards/card' + s + r + '.png'));
+    ranks.forEach(r => urls.push('assets/deck/' + s + r + '.svg'));
   });
   let i = 0;
   (function next() {

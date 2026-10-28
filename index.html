@@ -10,9 +10,17 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b1a52' stroke='%23b8860b' stroke-width='2'/%3E%3Ctext x='16' y='24' font-size='19' text-anchor='middle' fill='%23e8c26a'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b1a52' stroke='%23b8860b' stroke-width='2'/%3E%3Ctext x='16' y='24' font-size='19' text-anchor='middle' fill='%23e8c26a'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/midnight.css">
+<meta name="theme-color" content="#0a1917">
+<meta property="og:image" content="https://raw.githubusercontent.com/Sad-Salad-12/joker-clash/main/media/joker-clash-cover.jpg">
 </head>
 <body>
 
+<header class="table-header">
+  <a class="wordmark" href="./" aria-label="Joker Clash home"><span aria-hidden="true">♠</span> JOKER CLASH</a>
+  <span class="table-status" id="tableStatus">THE MIDNIGHT TABLE</span>
+  <nav aria-label="Game settings"><button class="utility-btn" id="btnSound" aria-pressed="true">SOUND ON</button><button class="utility-btn" id="btnHelp">HOW TO PLAY <span aria-hidden="true">↗</span></button></nav>
+</header>
 <div id="game" class="hidden">
 
   <!-- ============ Opponent ============ -->
@@ -20,7 +28,7 @@
     <div class="opp-top">
       <div class="hero-wrap">
         <div class="hero hero-opp" id="heroOpp">
-          <div class="hero-face">🤖</div>
+          <div class="hero-face"><img src="assets/art/rival.svg" alt="The House crest"></div>
           <div class="armor-badge hidden" id="armorOpp"><span>0</span></div>
           <div class="hp-badge" id="hpBadgeOpp"><span id="hpOpp">150</span></div>
         </div>
@@ -44,7 +52,7 @@
 
   <!-- ============ Board ============ -->
   <section class="board">
-    <div class="board-felt"></div>
+    <div class="board-felt"></div><div class="table-inscription" aria-hidden="true">JOKER CLASH <span>FORTUNE FAVORS THE BOLD</span></div>
 
     <div class="play-area" id="playArea">
       <div class="staged-cards" id="stagedCards"></div>
@@ -63,18 +71,19 @@
     </div>
 
     <div class="turn-banner hidden" id="turnBanner"></div>
-    <div class="log-line" id="logLine"></div>
+    <div class="log-line" id="logLine" role="status" aria-live="polite"></div>
   </section>
 
   <!-- ============ Player ============ -->
   <section class="side side-me">
+    <div class="hand-caption"><span>YOUR HAND <b id="selectionCount">0 / 5 SELECTED</b></span><span id="handResources">4 PLAYS · 3 DISCARDS</span></div>
     <div class="hand-row">
       <div class="hand-fan hand-me" id="handMe"></div>
 
       <div class="action-bar">
-        <button class="act-btn" id="btnPlay" disabled>PLAY</button>
+        <button class="act-btn" id="btnPlay" disabled>PLAY HAND</button>
         <button class="act-btn ghost" id="btnDiscard" disabled>DISCARD</button>
-        <button class="act-btn ghost" id="btnHint">BEST</button>
+        <button class="act-btn ghost" id="btnHint" title="Select strongest hand (H)">BEST HAND</button>
         <button class="act-btn ghost" id="btnClear" disabled>CLEAR</button>
       </div>
     </div>
@@ -82,7 +91,7 @@
     <div class="me-bottom">
       <div class="hero-wrap">
         <div class="hero hero-me" id="heroMe">
-          <div class="hero-face">🧑‍🚀</div>
+          <div class="hero-face"><img src="assets/art/player.svg" alt="Your ace crest"></div>
           <div class="armor-badge hidden" id="armorMe"><span>0</span></div>
           <div class="hp-badge" id="hpBadgeMe"><span id="hpMe">150</span></div>
         </div>
@@ -108,31 +117,43 @@
 </div>
 
 <!-- ============ Start screen ============ -->
-<div class="overlay" id="startScreen">
-  <div class="start-card">
-    <h1 class="title">JOKER CLASH</h1>
-    <p class="subtitle">A 1V1 CARD BATTLER</p>
-    <div class="rules">
-      <div class="rule"><b>THE LOOP</b> — Draw 8 cards each turn, then take 4 plays. Pick 1-5 cards to build a poker hand (Pair, Straight, Flush, Full House…).</div>
-      <div class="rule"><b>SCORING</b> — <span class="hl">Score = (hand chips + card chips) × multiplier</span>. Jokers inflate that number fast.</div>
-      <div class="rule"><b>DAMAGE</b> — Score ÷ 95 (rounded up) hits your opponent directly. First to drop them from 150 HP wins.</div>
-      <div class="rule"><b>REWARD</b> — Score 160+ in one play and you draft 1 of 3 Jokers as a permanent upgrade (once per turn, 5 slots max).</div>
-      <div class="rule"><b>CONTROLS</b> — Click cards to select (max 5), then PLAY. Not sure? Hit BEST and the game picks your strongest combo.</div>
-    </div>
+<main class="overlay lobby" id="startScreen">
+  <div class="lobby-art" aria-hidden="true"></div>
+  <div class="lobby-content">
+    <p class="eyebrow"><span></span> POKER HANDS. POWERFUL JOKERS.</p>
+    <h1 class="title">JOKER<br><span>CLASH</span><i aria-hidden="true">♠</i></h1>
+    <p class="lobby-intro">A good hand wins a round.<br>A great Joker changes the game.</p>
+    <div class="lobby-rule"><span>01 / BUILD A HAND</span><span>02 / STACK JOKERS</span><span>03 / BREAK THE HOUSE</span></div>
     <div class="diff-pick">
-      <span class="dp-label">OPPONENT DIFFICULTY</span>
-      <div class="dp-row" id="diffRow">
-        <button class="dp-btn" data-level="easy">EASY</button>
-        <button class="dp-btn active" data-level="normal">NORMAL</button>
-        <button class="dp-btn" data-level="hard">HARD</button>
+      <span class="dp-label">CHOOSE YOUR OPPONENT</span>
+      <div class="dp-row" id="diffRow" role="group" aria-label="Opponent difficulty">
+        <button class="dp-btn" data-level="easy" aria-pressed="false">EASY</button>
+        <button class="dp-btn active" data-level="normal" aria-pressed="true">NORMAL</button>
+        <button class="dp-btn" data-level="hard" aria-pressed="false">HARD</button>
       </div>
+      <p class="difficulty-note" id="difficultyNote">A fair fight. Build your edge one hand at a time.</p>
     </div>
-    <button class="big-start" id="btnStart">START GAME</button>
+    <button class="big-start" id="btnStart">TAKE A SEAT <span aria-hidden="true">↗</span></button>
+    <p class="lobby-footnote">SOLO VS AI <span>♦</span> NO BUY-IN. JUST STRATEGY.</p>
   </div>
-</div>
+  <div class="lobby-edition" aria-hidden="true">THE MIDNIGHT TABLE <span>VOL. 01 — EST. MMXXVI</span></div>
+</main>
+
+<dialog id="rulesDialog" aria-labelledby="rulesTitle">
+  <div class="dialog-heading"><p class="eyebrow">A SEAT AT THE TABLE</p><button class="utility-btn" id="btnCloseHelp" aria-label="Close how to play">CLOSE ×</button></div>
+  <h2 id="rulesTitle">Make every hand count.</h2>
+  <div class="rules">
+    <p class="rule"><b>01 / BUILD</b> Select 1–5 of your 8 cards. You have 4 plays and 3 discards each turn; your hand refills after every action.</p>
+    <p class="rule"><b>02 / SCORE</b> (Hand chips + scoring card chips) × multiplier. Score ÷ 95, rounded up, becomes damage. Reduce the opponent’s 150 HP to zero.</p>
+    <p class="rule"><b>03 / UPGRADE</b> Score 160+ to draft a permanent Joker, once per turn. You have 5 slots; a new pick replaces the oldest when full.</p>
+  </div>
+  <div class="hand-guide"><span>Pair <b>10 × 2</b></span><span>Three of a kind <b>30 × 3</b></span><span>Straight <b>30 × 4</b></span><span>Flush <b>35 × 4</b></span><span>Full house <b>40 × 4</b></span><span>Royal flush <b>120 × 12</b></span></div>
+  <p class="help-note">Base hand values, before scoring cards and Jokers.</p>
+  <p class="keyboard-help"><kbd>1–8</kbd> select cards <kbd>H</kbd> best hand <kbd>Enter</kbd> play <kbd>Esc</kbd> clear</p>
+</dialog>
 
 <!-- ============ Joker draft ============ -->
-<div class="overlay hidden" id="jokerScreen">
+<div class="overlay hidden" id="jokerScreen" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
   <div class="pick-wrap">
     <h2 class="pick-title" id="pickTitle">CHOOSE A JOKER</h2>
     <p class="pick-sub" id="pickSub"></p>

@@ -1,7 +1,8 @@
 Asset credits — JOKER CLASH
 ==========================
 
-All third-party assets used in this project are free for commercial use.
+Legacy third-party assets retain their original licenses below.
+New Midnight Table materials are documented separately at the end.
 
 1) Playing cards  →  assets/cards/*.png
    Source : "Board Game Pack" by Kenney
@@ -22,3 +23,21 @@ All third-party assets used in this project are free for commercial use.
 
 Everything else (layout, styling, game logic, sound synthesis,
 the felt table and all UI chrome drawn in CSS) was written for this project.
+
+
+Midnight Table refinement (2026-10-28)
+====================================
+- assets/art/midnight-table.jpg: original AI-generated key art, created with
+  OpenAI built-in image generation for this project. Not a stock photo or
+  a third-party CC0 asset. Generation prompt: media/ASSET-NOTES.md.
+- assets/deck/*.svg: 52 original code-authored ivory card faces.
+- assets/art/card-back.svg, player.svg, rival.svg and the 28 Joker seals:
+  original code-authored vector materials for this project.
+- css/midnight.css: original theme, felt material, responsive layout and motion.
+- media/*.png, media/joker-clash-cover.jpg: captures of this project.
+- media/joker-clash-gameplay.mp4: silent recording of actual UI-driven gameplay.
+
+The legacy Kenney cards and panels remain bundled for reference; the active
+Midnight Table UI references the SVG deck, vector seals, key art, and CSS.
+The generated artwork is not being represented as CC0. No additional
+third-party artwork, music, or video was imported in this refinement.
